@@ -24,7 +24,7 @@ namespace P2PChat
             server.Start();
             Console.WriteLine($"Server started on {IP}:{port}.");
 
-            Task.Run(() => AcceptClients());
+            Task.Run(AcceptClients);
         }
 
         private void AcceptClients()
@@ -33,9 +33,8 @@ namespace P2PChat
             {
                 while (true)
                 {
-                    Console.WriteLine("Waiting for a connection... ");
-                    TcpClient client = server.AcceptTcpClient();
-                    Console.WriteLine("Connected!");
+                    client = server.AcceptTcpClient();
+                    Console.WriteLine($"Connected to {client.Client.RemoteEndPoint}");
 
                     Task.Run(() => HandleClient(client));
                 }
@@ -89,6 +88,34 @@ namespace P2PChat
                 Console.WriteLine($"Exception: {e.Message}");
             }
         }
+
+        public bool IsConnectionActive()
+        {
+            if (client == null || !client.Client.Connected)
+                return false;
+
+            bool isSocketConnected = true;
+            try
+            {
+                isSocketConnected &= client.Client.Poll(0, SelectMode.SelectRead);
+                isSocketConnected &= client.Client.Available == 0;
+                if (client.Client.Poll(0, SelectMode.SelectWrite))
+                {
+                    byte[] buffer = new byte[1];
+                    if (client.Client.Send(buffer, 0, SocketFlags.Peek) == 0)
+                    {
+                        isSocketConnected = false;
+                    }
+                }
+            }
+            catch
+            {
+                isSocketConnected = false;
+            }
+
+            return isSocketConnected;
+        }
+
 
         private void HandleClient(TcpClient client)
         {

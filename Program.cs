@@ -4,18 +4,20 @@
     {
         static void Main(string[] args)
         {
-            if(args.Length != 1)
-            {
-                P2PChat chat = new P2PChat(port: 5000);
-                chat.StartServer();
-            }else{
-                P2PChat chat = new P2PChat(port: 5001);
-                chat.StartServer();
-                chat.ConnectToPeer("127.0.0.1", 5000);
-                chat.SendData("Hello, world!");
-            }
+            P2PChat chat = new P2PChat(IP: "0.0.0.0", port: 5000);
+            chat.StartServer();
 
-            Console.Read();
+            if(args.Length > 0) chat.ConnectToPeer(args[0], 5000);
+
+            while (true)
+            {
+                Console.Write("Enter message: ");
+                string message = Console.ReadLine();
+
+                if(message == "exit") break;
+
+                chat.SendData(message);
+            }
         }
     }
 }
