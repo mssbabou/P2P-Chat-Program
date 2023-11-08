@@ -1,54 +1,93 @@
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
 public static class NetworkDiscovery
 {
-    private static int discoveryPort = 8888;
-    private static UdpClient udpClient = new UdpClient(discoveryPort);
-    private static List<string> devices = new List<string>();
+    private static readonly int discoveryPort = 8888;
+    private static UdpClient udpClient;
+    private static List<string> peers = new List<string>();
 
-    // This static method starts listening for discovery responses.
+    static NetworkDiscovery()
+    {
+        udpClient = new UdpClient();
+        udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        udpClient.ExclusiveAddressUse = false;
+        udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, discoveryPort));
+    }
+
     public static void StartListening()
     {
-        udpClient.BeginReceive(ReceiveCallback, null);
+        try
+        {
+            udpClient.BeginReceive(ReceiveCallback, null);
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine($"SocketException: {e.Message}");
+        }
     }
 
-    // This static method sends out a broadcast to discover devices.
     public static void DiscoverDevices()
     {
-        var endPoint = new IPEndPoint(IPAddress.Broadcast, discoveryPort);
-        string message = "Discovery: Request";
-        byte[] sendBytes = Encoding.ASCII.GetBytes(message);
-        udpClient.EnableBroadcast = true;
-        udpClient.Send(sendBytes, sendBytes.Length, endPoint);
+        try
+        {
+            var endPoint = new IPEndPoint(IPAddress.Broadcast, discoveryPort);
+            string message = "Who is out there?";  // A more realistic discovery message
+            byte[] sendBytes = Encoding.ASCII.GetBytes(message);
+            udpClient.EnableBroadcast = true;
+            udpClient.Send(sendBytes, sendBytes.Length, endPoint);
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine($"SocketException: {e.Message}");
+        }
     }
 
-    // This static callback handles incoming responses.
     private static void ReceiveCallback(IAsyncResult ar)
     {
-        IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, discoveryPort);
-        byte[] bytes = udpClient.EndReceive(ar, ref groupEP);
-        string receivedData = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
-
-        lock (devices) // Synchronize access to the devices list.
+        try
         {
-            if (!devices.Contains(receivedData))
-            {
-                devices.Add(receivedData);
-            }
-        }
+            IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, discoveryPort);
+            byte[] bytes = udpClient.EndReceive(ar, ref groupEP);
+            string receivedData = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
 
-        // Continue listening for broadcast messages.
-        udpClient.BeginReceive(ReceiveCallback, null);
+            // Here you might want to parse the receivedData to extract meaningful information.
+            string deviceIdentifier = receivedData;  // For this example, we assume the entire message is the identifier.
+
+            lock (peers)
+            {
+                if (!peers.Contains(deviceIdentifier))
+                {
+                    peers.Add(deviceIdentifier);
+                }
+            }
+
+            udpClient.BeginReceive(ReceiveCallback, null);
+        }
+        catch (ObjectDisposedException)
+        {
+            // The socket was closed, ignore this exception.
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine($"SocketException: {e.Message}");
+        }
     }
 
-    // This static method returns the current list of discovered devices.
     public static List<string> GetDiscoveredDevices()
     {
-        lock (devices) // Synchronize access to the devices list.
+        lock (peers)
         {
-            return new List<string>(devices); // Return a copy of the list.
+            return new List<string>(peers);
         }
+    }
+
+    public static void StopListening()
+    {
+        udpClient?.Close();
+        udpClient = null;
     }
 }
