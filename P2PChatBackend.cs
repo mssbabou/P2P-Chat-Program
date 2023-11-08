@@ -9,6 +9,10 @@ namespace P2PChat
     {
         private IPAddress IP;
         private int port;
+
+        private IPAddress peerIP;
+        private int peerPort;
+
         private TcpListener server;
         private TcpClient client;
 
@@ -57,6 +61,9 @@ namespace P2PChat
                 client.Connect(IPAddress.Parse(peerIP), peerPort);
                 Console.WriteLine($"Connected to peer at {peerIP}:{peerPort}.");
 
+                this.peerIP = IPAddress.Parse(peerIP);
+                this.peerPort = peerPort;
+
                 Task.Run(() => HandleClient(client));
             }
             catch (Exception e)
@@ -65,9 +72,9 @@ namespace P2PChat
             }
         }
 
-        public void SendData(string message)
+        public void SendDataToPeer(byte[] data)
         {
-            if (client == null || !client.Connected)
+            if (client == null || !client.Client.Connected)
             {
                 Console.WriteLine("Not connected to any peer.");
                 return;
@@ -75,13 +82,9 @@ namespace P2PChat
 
             try
             {
-                byte[] byteData = Encoding.ASCII.GetBytes(message);
-
                 NetworkStream stream = client.GetStream();
 
-                stream.Write(byteData, 0, byteData.Length);
-
-                Console.WriteLine("Sent: {0}", message);
+                stream.Write(data, 0, data.Length);
             }
             catch (Exception e)
             {
@@ -121,15 +124,13 @@ namespace P2PChat
         {
             NetworkStream stream = client.GetStream();
             byte[] bytes = new byte[256];
-            string data = null;
 
             try
             {
                 int i;
                 while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                 {
-                    data = Encoding.ASCII.GetString(bytes, 0, i);
-                    Console.WriteLine("Received: {0}", data);
+                    Console.WriteLine("{0}", $"{peerIP}: {Encoding.ASCII.GetString(bytes, 0, i)}");
                 }
             }
             catch (Exception e)
