@@ -6,15 +6,19 @@ namespace P2PChat
     {
         static void Main(string[] args)
         {
-            P2PChat chat = new P2PChat(IP: "0.0.0.0", port: 5002);
+            P2PChat chat = new P2PChat(IP: args[0], port: int.Parse(args[1]));
             chat.StartServer();
 
-            if(args.Length > 0) chat.ConnectToPeer(args[0], 5000);
+            if(args.Length > 2) chat.ConnectToPeer(args[2], int.Parse(args[3]));
+
+            chat.OnDataReceived += (sender, data) =>
+            {
+                Console.WriteLine($"Peer: {data}. Data length: {data.Length}");
+            };
 
             while (true)
             {
-                Console.Write("> ");
-                string message = Console.ReadLine();
+                string? message = Console.ReadLine();
 
                 if(string.IsNullOrEmpty(message)) continue;
                 if(message == "exit") break;

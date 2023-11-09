@@ -16,6 +16,8 @@ namespace P2PChat
         private TcpListener server;
         private TcpClient client;
 
+        public event EventHandler<byte[]> OnDataReceived;
+
         public P2PChat(string IP = "127.0.0.1", int port = 5000)
         {
             this.IP = IPAddress.Parse(IP);
@@ -39,6 +41,9 @@ namespace P2PChat
                 {
                     client = server.AcceptTcpClient();
                     Console.WriteLine($"Connected to {client.Client.RemoteEndPoint}");
+
+                    peerIP = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
+                    peerPort = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
 
                     Task.Run(() => HandleClient(client));
                 }
@@ -84,6 +89,11 @@ namespace P2PChat
             {
                 NetworkStream stream = client.GetStream();
 
+                // Send the length of the data as the first 4 bytes (32 bits)
+                var dataLength = BitConverter.GetBytes(data.Length);
+                stream.Write(dataLength, 0, dataLength.Length);
+
+                // Then send the actual data
                 stream.Write(data, 0, data.Length);
             }
             catch (Exception e)
@@ -91,46 +101,50 @@ namespace P2PChat
                 Console.WriteLine($"Exception: {e.Message}");
             }
         }
-
-        public bool IsConnectionActive()
+        private int ReadFullMessage(NetworkStream stream, byte[] buffer, int length)
         {
-            if (client == null || !client.Client.Connected)
-                return false;
-
-            bool isSocketConnected = true;
-            try
+            int totalBytesRead = 0;
+            while (totalBytesRead < length)
             {
-                isSocketConnected &= client.Client.Poll(0, SelectMode.SelectRead);
-                isSocketConnected &= client.Client.Available == 0;
-                if (client.Client.Poll(0, SelectMode.SelectWrite))
+                int bytesRead = stream.Read(buffer, totalBytesRead, length - totalBytesRead);
+                if (bytesRead == 0)
                 {
-                    byte[] buffer = new byte[1];
-                    if (client.Client.Send(buffer, 0, SocketFlags.Peek) == 0)
-                    {
-                        isSocketConnected = false;
-                    }
+                    // The client disconnected or the stream was closed
+                    break;
                 }
+                totalBytesRead += bytesRead;
             }
-            catch
-            {
-                isSocketConnected = false;
-            }
-
-            return isSocketConnected;
+            return totalBytesRead;
         }
-
 
         private void HandleClient(TcpClient client)
         {
             NetworkStream stream = client.GetStream();
-            byte[] bytes = new byte[256];
 
             try
             {
-                int i;
-                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                while (true)
                 {
-                    Console.WriteLine("{0}", $"{peerIP}: {Encoding.ASCII.GetString(bytes, 0, i)}");
+                    // Read the length of the incoming data
+                    byte[] lengthBytes = new byte[4];
+                    int bytesRead = stream.Read(lengthBytes, 0, 4);
+                    if (bytesRead == 0)
+                        break; // The client disconnected.
+
+                    int dataLength = BitConverter.ToInt32(lengthBytes, 0);
+                    // Now read the actual data
+                    byte[] bytes = new byte[dataLength];
+                    bytesRead = ReadFullMessage(stream, bytes, dataLength);
+                    if (bytesRead == dataLength)
+                    {
+                        OnDataReceived?.Invoke(this, bytes);
+                    }
+                    else
+                    {
+                        // Handle the case where the expected number of bytes was not received
+                        Console.WriteLine("Received incomplete message.");
+                        break;
+                    }
                 }
             }
             catch (Exception e)

@@ -45,9 +45,6 @@ public static class EncryptionService
 
     private static byte[] Combine(byte[] iv, byte[] encryptedKey, byte[] encryptedData)
     {
-        Console.WriteLine($"IV Length: {iv.Length}b");
-        Console.WriteLine($"Encrypted Key Length: {encryptedKey.Length}b");
-        Console.WriteLine($"Encrypted Data Length: {encryptedData.Length}b");
         byte[] combinedData = new byte[iv.Length + encryptedKey.Length + encryptedData.Length];
         Buffer.BlockCopy(iv, 0, combinedData, 0, iv.Length);
         Buffer.BlockCopy(encryptedKey, 0, combinedData, iv.Length, encryptedKey.Length);
