@@ -7,22 +7,22 @@ public static class EncryptionService
         using RSA rsa = RSA.Create();
         rsa.FromXmlString(publicKey);
 
-        byte[] aesIV;
-        byte[] encryptedAesKey;
         byte[] encryptedData;
 
-        using Aes aesAlg = Aes.Create();
-        aesAlg.GenerateKey();
-        aesAlg.GenerateIV();
+        using (Aes aesAlg = Aes.Create())
+        {
+            aesAlg.GenerateKey();
+            aesAlg.GenerateIV();
 
-        // Use RSA with OAEP-SHA256 padding
-        encryptedAesKey = rsa.Encrypt(aesAlg.Key, RSAEncryptionPadding.OaepSHA256);
-        aesIV = aesAlg.IV;
+            encryptedData = EncryptWithAes(dataToEncrypt, aesAlg);
 
-        ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-        encryptedData = encryptor.TransformFinalBlock(dataToEncrypt, 0, dataToEncrypt.Length);
+            // Clear the AES key from memory
+            Array.Clear(aesAlg.Key, 0, aesAlg.Key.Length);
 
-        return Combine(aesIV, encryptedAesKey, encryptedData);
+            byte[] encryptedAesKey = rsa.Encrypt(aesAlg.Key, RSAEncryptionPadding.OaepSHA256);
+
+            return Combine(aesAlg.IV, encryptedAesKey, encryptedData);
+        }
     }
 
     public static byte[] DecryptData(byte[] dataToDecrypt, string privateKey)
@@ -32,15 +32,28 @@ public static class EncryptionService
 
         (byte[] iv, byte[] encryptedKey, byte[] encryptedData) = Separate(dataToDecrypt, rsa.KeySize / 8);
 
-        // Use RSA with OAEP-SHA256 padding
         byte[] decryptedAesKey = rsa.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
 
         using Aes aesAlg = Aes.Create();
         aesAlg.Key = decryptedAesKey;
         aesAlg.IV = iv;
 
-        ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-        return decryptor.TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+        // Clear the AES key from memory
+        Array.Clear(decryptedAesKey, 0, decryptedAesKey.Length);
+
+        return DecryptWithAes(encryptedData, aesAlg);
+    }
+
+    private static byte[] EncryptWithAes(byte[] data, Aes aesAlg)
+    {
+        using ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+        return encryptor.TransformFinalBlock(data, 0, data.Length);
+    }
+
+    private static byte[] DecryptWithAes(byte[] data, Aes aesAlg)
+    {
+        using ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+        return decryptor.TransformFinalBlock(data, 0, data.Length);
     }
 
     private static byte[] Combine(byte[] iv, byte[] encryptedKey, byte[] encryptedData)
@@ -54,14 +67,10 @@ public static class EncryptionService
 
     private static (byte[] iv, byte[] encryptedKey, byte[] encryptedData) Separate(byte[] combinedData, int rsaKeySizeInBytes)
     {
-        byte[] iv = new byte[16];
-        byte[] encryptedKey = new byte[rsaKeySizeInBytes];
-        byte[] encryptedData = new byte[combinedData.Length - iv.Length - encryptedKey.Length];
+        ArraySegment<byte> iv = new ArraySegment<byte>(combinedData, 0, 16);
+        ArraySegment<byte> encryptedKey = new ArraySegment<byte>(combinedData, iv.Count, rsaKeySizeInBytes);
+        ArraySegment<byte> encryptedData = new ArraySegment<byte>(combinedData, iv.Count + encryptedKey.Count, combinedData.Length - iv.Count - encryptedKey.Count);
 
-        Buffer.BlockCopy(combinedData, 0, iv, 0, iv.Length);
-        Buffer.BlockCopy(combinedData, iv.Length, encryptedKey, 0, encryptedKey.Length);
-        Buffer.BlockCopy(combinedData, iv.Length + encryptedKey.Length, encryptedData, 0, encryptedData.Length);
-
-        return (iv, encryptedKey, encryptedData);
+        return (iv.ToArray(), encryptedKey.ToArray(), encryptedData.ToArray());
     }
 }
