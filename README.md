@@ -31,4 +31,4 @@ After running the application, you can start chatting with your peer. Type your 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/mssbabou/P2P-Chat-Program/blob/main/LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/mssbabou/P2P-Chat-Program/blob/main/LICENSE) file for details
