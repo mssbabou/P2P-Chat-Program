@@ -1,9 +1,7 @@
-using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
-namespace P2PChat
+namespace P2PChatCore
 {
     public class P2PChat
     {
