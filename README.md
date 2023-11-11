@@ -14,7 +14,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/P2PChat.git
+git clone https://github.com/mssbabou/P2P-Chat-Program.git
 ```
 2. Navigate to the cloned repository
 ```bash
@@ -31,4 +31,4 @@ After running the application, you can start chatting with your peer. Type your 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/yourusername/P2PChat/blob/main/LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/mssbabou/P2P-Chat-Program/blob/main/LICENSE) file for details
