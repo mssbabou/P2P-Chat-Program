@@ -1,28 +1,51 @@
 ﻿using P2PChatCore;
 using System.Text;
 
-class Program
+namespace P2PChatConsole
 {
-    static void Main(string[] args)
+    class Program
     {
-        P2PChat chat = new P2PChat(IP: args[0], port: int.Parse(args[1]));
-        chat.StartServer();
-
-        if(args.Length > 2) chat.ConnectToPeer(args[2], int.Parse(args[3]));
-
-        chat.OnDataReceived += (sender, data) =>
+        static void Main(string[] args)
         {
-            Console.WriteLine($"Peer: {data}. Data length: {data.Length}");
-        };
+            P2PChat chat = new P2PChat(IP: "127.0.0.1", port: 5000);
+            chat.StartServer();
 
-        while (true)
-        {
-            string? message = Console.ReadLine();
+            chat.OnDataReceived += (sender, data) =>
+            {
+                Console.WriteLine($"Peer: {data}. Data length: {data.Length}");
+            };
 
-            if(string.IsNullOrEmpty(message)) continue;
-            if(message == "exit") break;
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("Welcome to P2PChat!");
+                Console.WriteLine();
 
-            chat.SendDataToPeer(Encoding.ASCII.GetBytes(message));
+                string[] mainMenuItems = new string[] { "Connect to peer", "Exit" };
+                string mainMenuChoice = ConsoleManager.Start(mainMenuItems);
+                if(mainMenuChoice == mainMenuItems[0])
+                {
+                    Console.Write("Enter IP address of peer: ");
+                    string? ip = Console.ReadLine();
+                    chat.ConnectToPeer(ip, 5000);
+
+                    while (true)
+                    {
+                        string? message = Console.ReadLine();
+
+                        if (string.IsNullOrEmpty(message)) continue;
+                        if (message == "/exit") break;
+
+                        chat.SendDataToPeer(Encoding.ASCII.GetBytes(message));
+                    }
+
+                }
+                else if(mainMenuChoice == mainMenuItems[1])
+                {
+                    return;
+                }
+
+            }
         }
     }
 }
