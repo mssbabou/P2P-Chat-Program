@@ -52,7 +52,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-		<ProjectReference Include="..\Core\P2PChat-Core.csproj" />
 	</ItemGroup>
 
 </Project>
