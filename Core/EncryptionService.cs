@@ -11,20 +11,18 @@ namespace P2PChatCore
 
             byte[] encryptedData;
 
-            using (Aes aesAlg = Aes.Create())
-            {
-                aesAlg.GenerateKey();
-                aesAlg.GenerateIV();
+            using Aes aesAlg = Aes.Create();
+            aesAlg.GenerateKey();
+            aesAlg.GenerateIV();
+            
+            encryptedData = EncryptWithAes(dataToEncrypt, aesAlg);
 
-                encryptedData = EncryptWithAes(dataToEncrypt, aesAlg);
+            // Clear the AES key from memory
+            Array.Clear(aesAlg.Key, 0, aesAlg.Key.Length);
 
-                // Clear the AES key from memory
-                Array.Clear(aesAlg.Key, 0, aesAlg.Key.Length);
+            byte[] encryptedAesKey = rsa.Encrypt(aesAlg.Key, RSAEncryptionPadding.OaepSHA256);
 
-                byte[] encryptedAesKey = rsa.Encrypt(aesAlg.Key, RSAEncryptionPadding.OaepSHA256);
-
-                return Combine(aesAlg.IV, encryptedAesKey, encryptedData);
-            }
+            return Combine(aesAlg.IV, encryptedAesKey, encryptedData);
         }
 
         public static byte[] DecryptData(byte[] dataToDecrypt, string privateKey)
