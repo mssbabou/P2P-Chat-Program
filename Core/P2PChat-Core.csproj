@@ -6,6 +6,7 @@
     <RootNamespace>P2PChatCore</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
 </Project>

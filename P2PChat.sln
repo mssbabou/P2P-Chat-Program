@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P2PChat-Core", "Core\P2PCha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P2PChat-Console", "Console\P2PChat-Console.csproj", "{EAE2AF6B-238E-4C56-BD5B-1D6623729A50}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P2PChat-Gui", "Gui\P2PChat-Gui.csproj", "{06F880F0-0A58-4C28-810D-E3EA764DD9FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P2PChat-Gui", "Gui\P2PChat-Gui.csproj", "{C14ADB99-94EB-43D0-8996-631BF5346537}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,12 +21,12 @@ Global
 		{EAE2AF6B-238E-4C56-BD5B-1D6623729A50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EAE2AF6B-238E-4C56-BD5B-1D6623729A50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EAE2AF6B-238E-4C56-BD5B-1D6623729A50}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06F880F0-0A58-4C28-810D-E3EA764DD9FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{06F880F0-0A58-4C28-810D-E3EA764DD9FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{06F880F0-0A58-4C28-810D-E3EA764DD9FA}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{06F880F0-0A58-4C28-810D-E3EA764DD9FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{06F880F0-0A58-4C28-810D-E3EA764DD9FA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06F880F0-0A58-4C28-810D-E3EA764DD9FA}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{C14ADB99-94EB-43D0-8996-631BF5346537}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C14ADB99-94EB-43D0-8996-631BF5346537}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C14ADB99-94EB-43D0-8996-631BF5346537}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{C14ADB99-94EB-43D0-8996-631BF5346537}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C14ADB99-94EB-43D0-8996-631BF5346537}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C14ADB99-94EB-43D0-8996-631BF5346537}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
